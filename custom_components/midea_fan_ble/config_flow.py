@@ -14,7 +14,6 @@ from typing import Any
 
 import voluptuous as vol
 from bleak.exc import BleakError
-
 from homeassistant.components import bluetooth
 from homeassistant.components.bluetooth import (
     BluetoothScanningMode,
@@ -81,7 +80,9 @@ class MideaFanConfigFlow(ConfigFlow, domain=DOMAIN):
         from .client import MideaFanClient
 
         async def _connect(disconnected_callback):
-            device = bluetooth.async_ble_device_from_address(self.hass, fan.address, connectable=True)
+            device = bluetooth.async_ble_device_from_address(
+                self.hass, fan.address, connectable=True
+            )
             if device is None:
                 raise MideaBleError("device not reachable")
             return await establish_connection(
@@ -114,7 +115,10 @@ class MideaFanConfigFlow(ConfigFlow, domain=DOMAIN):
         self._fan = fan
         return await self.async_step_test()
 
-    async def async_step_bluetooth(self, discovery_info: BluetoothServiceInfoBleak) -> ConfigFlowResult:
+    async def async_step_bluetooth(
+        self, discovery_info: BluetoothServiceInfoBleak
+    ) -> ConfigFlowResult:
+        """Handle a Bluetooth discovery."""
         await self.async_set_unique_id(discovery_info.address)
         self._abort_if_unique_id_configured()
         fan = _parse(discovery_info)
@@ -125,7 +129,10 @@ class MideaFanConfigFlow(ConfigFlow, domain=DOMAIN):
         self.context["title_placeholders"] = {"name": f"Midea fan ({discovery_info.address})"}
         return await self.async_step_bluetooth_confirm()
 
-    async def async_step_bluetooth_confirm(self, user_input: dict[str, Any] | None = None) -> ConfigFlowResult:
+    async def async_step_bluetooth_confirm(
+        self, user_input: dict[str, Any] | None = None
+    ) -> ConfigFlowResult:
+        """Confirm a discovered fan."""
         assert self._address is not None
         if user_input is not None:
             return await self._async_select(self._discovered[self._address])
@@ -135,6 +142,7 @@ class MideaFanConfigFlow(ConfigFlow, domain=DOMAIN):
         )
 
     async def async_step_user(self, user_input: dict[str, Any] | None = None) -> ConfigFlowResult:
+        """Pick a fan from the discovered devices."""
         if user_input is not None:
             address = user_input[CONF_ADDRESS]
             await self.async_set_unique_id(address, raise_on_progress=False)
@@ -154,14 +162,23 @@ class MideaFanConfigFlow(ConfigFlow, domain=DOMAIN):
         return self.async_show_form(
             step_id="user",
             data_schema=vol.Schema(
-                {vol.Required(CONF_ADDRESS): vol.In({a: f"{i.name} ({a})" for a, i in self._discovered.items()})}
+                {
+                    vol.Required(CONF_ADDRESS): vol.In(
+                        {a: f"{i.name} ({a})" for a, i in self._discovered.items()}
+                    )
+                }
             ),
         )
 
-    async def async_step_wait_serial(self, user_input: dict[str, Any] | None = None) -> ConfigFlowResult:
+    async def async_step_wait_serial(
+        self, user_input: dict[str, Any] | None = None
+    ) -> ConfigFlowResult:
+        """Wait for the advertisement carrying the serial."""
         assert self._address is not None
         if self._serial_task is None:
-            self._serial_task = self.hass.async_create_task(self._async_wait_for_serial(self._address))
+            self._serial_task = self.hass.async_create_task(
+                self._async_wait_for_serial(self._address)
+            )
         if not self._serial_task.done():
             return self.async_show_progress(
                 step_id="wait_serial",
@@ -175,15 +192,23 @@ class MideaFanConfigFlow(ConfigFlow, domain=DOMAIN):
             next_step_id="serial_found" if self._fan else "manual_serial"
         )
 
-    async def async_step_serial_found(self, user_input: dict[str, Any] | None = None) -> ConfigFlowResult:
+    async def async_step_serial_found(
+        self, user_input: dict[str, Any] | None = None
+    ) -> ConfigFlowResult:
+        """Continue once the serial was received."""
         assert self._fan is not None
         return await self._async_finish(self._fan)
 
-    async def async_step_manual_serial(self, user_input: dict[str, Any] | None = None) -> ConfigFlowResult:
+    async def async_step_manual_serial(
+        self, user_input: dict[str, Any] | None = None
+    ) -> ConfigFlowResult:
+        """Ask for the serial when it was not received."""
         assert self._address is not None
         errors: dict[str, str] = {}
         if user_input is not None:
-            payload = bytes((MIDEA_ADVERTISEMENT_MARKER,)) + user_input[CONF_SERIAL].strip().encode()
+            payload = (
+                bytes((MIDEA_ADVERTISEMENT_MARKER,)) + user_input[CONF_SERIAL].strip().encode()
+            )
             try:
                 fan = parse_serial_payload(payload, self._address)
             except (MideaBleAdvertisementError, UnicodeEncodeError):

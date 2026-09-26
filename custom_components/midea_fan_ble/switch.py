@@ -16,15 +16,23 @@ from .entity import MideaFanEntity
 
 @dataclass(frozen=True, kw_only=True)
 class FanSwitchDescription(SwitchEntityDescription):
+    """Describes a fan setting switch."""
+
     field: str
 
 
 SWITCHES = (
     FanSwitchDescription(
-        key="display", translation_key="display", field="display", entity_category=EntityCategory.CONFIG
+        key="display",
+        translation_key="display",
+        field="display",
+        entity_category=EntityCategory.CONFIG,
     ),
     FanSwitchDescription(
-        key="buzzer", translation_key="buzzer", field="buzzer", entity_category=EntityCategory.CONFIG
+        key="buzzer",
+        translation_key="buzzer",
+        field="buzzer",
+        entity_category=EntityCategory.CONFIG,
     ),
 )
 
@@ -34,6 +42,7 @@ async def async_setup_entry(
     entry: MideaFanConfigEntry,
     async_add_entities: AddConfigEntryEntitiesCallback,
 ) -> None:
+    """Set up the display and buzzer switches."""
     async_add_entities(FanSwitch(entry.runtime_data, d) for d in SWITCHES)
 
 
@@ -48,10 +57,13 @@ class FanSwitch(MideaFanEntity, SwitchEntity):
 
     @property
     def is_on(self) -> bool:
+        """Return whether the setting is on."""
         return getattr(self.coordinator.data, self.entity_description.field)
 
     async def async_turn_on(self, **kwargs: Any) -> None:
+        """Turn the setting on."""
         await self.coordinator.async_set(**{self.entity_description.field: True})
 
     async def async_turn_off(self, **kwargs: Any) -> None:
+        """Turn the setting off."""
         await self.coordinator.async_set(**{self.entity_description.field: False})

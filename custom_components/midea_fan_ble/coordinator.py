@@ -9,7 +9,6 @@ from typing import Any
 from bleak import BleakClient
 from bleak.exc import BleakError
 from bleak_retry_connector import BleakClientWithServiceCache, establish_connection
-
 from homeassistant.components import bluetooth
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.const import CONF_ADDRESS
@@ -52,7 +51,9 @@ class MideaFanCoordinator(DataUpdateCoordinator[FanStatus]):
     async def _connect(self, disconnected_callback: Callable[[BleakClient], None]) -> BleakClient:
         device = self._ble_device()
         if device is None:
-            raise MideaBleConnectionError(f"{self.address} is not reachable by any Bluetooth adapter")
+            raise MideaBleConnectionError(
+                f"{self.address} is not reachable by any Bluetooth adapter"
+            )
         return await establish_connection(
             BleakClientWithServiceCache,
             device,

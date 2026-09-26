@@ -17,6 +17,8 @@ OFF = "off"
 
 @dataclass(frozen=True, kw_only=True)
 class AngleSelectDescription(SelectEntityDescription):
+    """Describes an oscillation-angle select."""
+
     field: str
     angles: tuple[int, ...]
 
@@ -44,6 +46,7 @@ async def async_setup_entry(
     entry: MideaFanConfigEntry,
     async_add_entities: AddConfigEntryEntitiesCallback,
 ) -> None:
+    """Set up the oscillation selects."""
     async_add_entities(AngleSelect(entry.runtime_data, d) for d in SELECTS)
 
 
@@ -58,6 +61,7 @@ class AngleSelect(MideaFanEntity, SelectEntity):
 
     @property
     def current_option(self) -> str | None:
+        """Return the axis angle, or off."""
         status: FanStatus = self.coordinator.data
         if not status.power:
             return None
@@ -65,5 +69,6 @@ class AngleSelect(MideaFanEntity, SelectEntity):
         return str(angle) if angle else OFF
 
     async def async_select_option(self, option: str) -> None:
+        """Set the axis angle, or stop it."""
         angle = 0 if option == OFF else int(option)
         await self.coordinator.async_set(**{self.entity_description.field: angle})

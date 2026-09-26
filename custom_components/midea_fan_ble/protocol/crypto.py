@@ -96,8 +96,6 @@ def decipher_message(key: bytes, blob: bytes) -> bytes:
         raise MideaBleCryptoError("cipher blob is too short")
     nonce, ciphertext_and_tag = blob[:CCM_NONCE_LENGTH], blob[CCM_NONCE_LENGTH:]
     try:
-        return AESCCM(key, tag_length=CCM_TAG_LENGTH).decrypt(
-            nonce, ciphertext_and_tag, None
-        )
+        return AESCCM(key, tag_length=CCM_TAG_LENGTH).decrypt(nonce, ciphertext_and_tag, None)
     except InvalidTag as err:
         raise MideaBleCryptoError("AES-CCM authentication failed") from err

@@ -130,9 +130,7 @@ class HandshakeState:
         if self.session_key is None or self.public_key is None:
             raise MideaBleHandshakeError("C2 must establish a session before C3")
         proof = self._cipher(self.session_key, self.advertis_data)
-        security = encode_security(
-            SEC_C3, self.public_key + proof, self._next_security_sequence()
-        )
+        security = encode_security(SEC_C3, self.public_key + proof, self._next_security_sequence())
         return encode_conn(
             CONN_T2,
             self._cipher(self.root_key, security),

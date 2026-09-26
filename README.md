@@ -23,11 +23,17 @@ particular differ between models.
 
 ## Install
 
-1. Copy `custom_components/midea_fan_ble` into your Home Assistant
-   `config/custom_components/` directory and restart.
-2. The fan is discovered automatically (Settings → Devices & services). You
+With HACS: add this repository as a custom repository (category
+Integration), install **Midea Fan (Bluetooth)**, and restart Home Assistant.
+
+Manually: copy `custom_components/midea_fan_ble` into your Home Assistant
+`config/custom_components/` directory and restart.
+
+Then:
+
+1. The fan is discovered automatically (Settings → Devices & services). You
    can also add it manually with **Add integration → Midea Fan (Bluetooth)**.
-3. Close the SmartHome app first. The fan accepts one Bluetooth connection at a
+2. Close the SmartHome app first. The fan accepts one Bluetooth connection at a
    time.
 
 The Home Assistant host (or an ESPHome Bluetooth proxy with active connections)
@@ -59,8 +65,9 @@ python -m venv .venv && .venv/bin/pip install bleak cryptography
 ## Tests
 
 ```sh
-.venv/bin/pip install pytest pytest-asyncio
+.venv/bin/pip install pytest pytest-asyncio ruff
 .venv/bin/python -m pytest
+.venv/bin/ruff check custom_components tests tools
 ```
 
 The unit tests use frames captured from a real fan and a simulated fan that

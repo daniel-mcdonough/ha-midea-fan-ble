@@ -73,9 +73,7 @@ def decode_conn(raw: bytes) -> ConnFrame:
         raise MideaBleFrameError("conn sync mismatch")
     expected = 2 + raw[2]
     if len(raw) != expected:
-        raise MideaBleFrameError(
-            f"conn length mismatch: got {len(raw)}, expected {expected}"
-        )
+        raise MideaBleFrameError(f"conn length mismatch: got {len(raw)}, expected {expected}")
     if raw[4] not in _CONN_TYPES:
         raise MideaBleFrameError(f"unknown conn frame type: 0x{raw[4]:02x}")
     if sum(raw[2:]) & 0xFF:
@@ -102,9 +100,7 @@ def decode_security(raw: bytes) -> SecurityFrame:
         raise MideaBleFrameError(f"unknown security command: 0x{raw[0]:02x}")
     expected = 3 + raw[2]
     if len(raw) != expected:
-        raise MideaBleFrameError(
-            f"security length mismatch: got {len(raw)}, expected {expected}"
-        )
+        raise MideaBleFrameError(f"security length mismatch: got {len(raw)}, expected {expected}")
     return SecurityFrame(command=raw[0], sequence=raw[1], body=bytes(raw[3:]))
 
 
@@ -131,9 +127,7 @@ def decode_biz(raw: bytes) -> BizFrame:
     if len(raw) < 4:
         raise MideaBleFrameError("biz frame is too short")
     if len(raw) != raw[1]:
-        raise MideaBleFrameError(
-            f"biz length mismatch: got {len(raw)}, expected {raw[1]}"
-        )
+        raise MideaBleFrameError(f"biz length mismatch: got {len(raw)}, expected {raw[1]}")
     if raw[2] != 0:
         raise MideaBleFrameError("biz reserved byte is not zero")
     return BizFrame(frame_type=raw[0], body=bytes(raw[3:-1]))

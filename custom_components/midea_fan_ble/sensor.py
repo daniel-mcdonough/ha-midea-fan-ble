@@ -20,6 +20,7 @@ async def async_setup_entry(
     entry: MideaFanConfigEntry,
     async_add_entities: AddConfigEntryEntitiesCallback,
 ) -> None:
+    """Set up the temperature sensor."""
     async_add_entities([TemperatureSensor(entry.runtime_data, "temperature")])
 
 
@@ -32,4 +33,5 @@ class TemperatureSensor(MideaFanEntity, SensorEntity):
 
     @property
     def native_value(self) -> int | None:
+        """Return the temperature."""
         return self.coordinator.data.temperature

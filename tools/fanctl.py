@@ -1,10 +1,10 @@
 #!/usr/bin/env python3
 """Control a Midea BLE fan from the command line.
 
-    fanctl.py scan
-    fanctl.py --address AA:BB:.. --serial 12345678FA0001 status
-    fanctl.py --address .. --serial .. set --speed 3 --oscillate on
-    fanctl.py --address .. --serial .. listen 60
+fanctl.py scan
+fanctl.py --address AA:BB:.. --serial 12345678FA0001 status
+fanctl.py --address .. --serial .. set --speed 3 --oscillate on
+fanctl.py --address .. --serial .. listen 60
 """
 
 import argparse
@@ -14,16 +14,18 @@ from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 
-from bleak import BleakClient, BleakScanner  # noqa: E402
+from bleak import BleakClient, BleakScanner
 
-from custom_components.midea_fan_ble.client import MideaFanClient  # noqa: E402
-from custom_components.midea_fan_ble.protocol.advertisement import (  # noqa: E402
+from custom_components.midea_fan_ble.client import MideaFanClient
+from custom_components.midea_fan_ble.protocol.advertisement import (
     build_advertis_data,
     parse_serial_payload,
 )
-from custom_components.midea_fan_ble.protocol.constants import MIDEA_MANUFACTURER_ID  # noqa: E402
-from custom_components.midea_fan_ble.protocol.exceptions import MideaBleAdvertisementError  # noqa: E402
-from custom_components.midea_fan_ble.protocol.fa import MSFS07_MODES, FanStatus  # noqa: E402
+from custom_components.midea_fan_ble.protocol.constants import MIDEA_MANUFACTURER_ID
+from custom_components.midea_fan_ble.protocol.exceptions import (
+    MideaBleAdvertisementError,
+)
+from custom_components.midea_fan_ble.protocol.fa import MSFS07_MODES, FanStatus
 
 
 def on_off(value: str) -> bool:
@@ -107,7 +109,9 @@ async def main() -> None:
             print("push:", end=" ")
             show(status)
 
-    client = MideaFanClient(build_advertis_data(args.address, args.serial), connector, on_status=pushed)
+    client = MideaFanClient(
+        build_advertis_data(args.address, args.serial), connector, on_status=pushed
+    )
     try:
         if args.cmd == "status":
             show(await client.query())
@@ -119,12 +123,20 @@ async def main() -> None:
             mode = args.mode
             if mode is not None and not mode.isdigit():
                 mode = {v: k for k, v in MSFS07_MODES.items()}[mode]
-            if args.horizontal is not None and args.vertical is not None and bool(args.horizontal) != bool(args.vertical):
+            if (
+                args.horizontal is not None
+                and args.vertical is not None
+                and bool(args.horizontal) != bool(args.vertical)
+            ):
                 ap.error("--horizontal and --vertical must both be on or both off in one command")
             fields = dict(
-                power=args.power, speed=args.speed, mode=int(mode) if mode else None,
-                horizontal_angle=args.horizontal, vertical_angle=args.vertical,
-                display=args.display, buzzer=args.buzzer,
+                power=args.power,
+                speed=args.speed,
+                mode=int(mode) if mode else None,
+                horizontal_angle=args.horizontal,
+                vertical_angle=args.vertical,
+                display=args.display,
+                buzzer=args.buzzer,
             )
             show(await client.set(**{k: v for k, v in fields.items() if v is not None}))
     finally:

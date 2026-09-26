@@ -52,10 +52,23 @@ def _checksum(data: bytes) -> int:
     return (~sum(data) + 1) & 0xFF
 
 
-def build_frame(msg_type: int, body: bytes, protocol_version: int = DEFAULT_PROTOCOL_VERSION) -> bytes:
+def build_frame(
+    msg_type: int, body: bytes, protocol_version: int = DEFAULT_PROTOCOL_VERSION
+) -> bytes:
     """Wrap an appliance body in the Midea UART header and checksum."""
     frame = bytearray(
-        (0xAA, HEADER_LENGTH + len(body), DEVICE_TYPE_FAN, 0, 0, 0, 0, 0, protocol_version, msg_type)
+        (
+            0xAA,
+            HEADER_LENGTH + len(body),
+            DEVICE_TYPE_FAN,
+            0,
+            0,
+            0,
+            0,
+            0,
+            protocol_version,
+            msg_type,
+        )
     )
     frame.extend(body)
     frame.append(_checksum(bytes(frame[1:])))
@@ -138,10 +151,12 @@ class FanStatus:
 
     @property
     def mode_name(self) -> str | None:
+        """Return the model-specific mode name, if known."""
         return MSFS07_MODES.get(self.mode)
 
     @property
     def oscillate(self) -> bool:
+        """Return whether either axis is oscillating."""
         return bool(self.horizontal_angle or self.vertical_angle)
 
 

@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """Exercise every control on a real fan and restore its original state.
 
-    live_test.py --address AA:BB:.. --serial 12345678FA0001
+live_test.py --address AA:BB:.. --serial 12345678FA0001
 """
 
 import argparse
@@ -11,18 +11,20 @@ from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 
-from bleak import BleakClient, BleakScanner  # noqa: E402
+from bleak import BleakClient, BleakScanner
 
-from custom_components.midea_fan_ble.client import MideaFanClient  # noqa: E402
-from custom_components.midea_fan_ble.protocol.advertisement import build_advertis_data  # noqa: E402
-from custom_components.midea_fan_ble.protocol.fa import MSFS07_MODES, FanStatus  # noqa: E402
+from custom_components.midea_fan_ble.client import MideaFanClient
+from custom_components.midea_fan_ble.protocol.advertisement import build_advertis_data
+from custom_components.midea_fan_ble.protocol.fa import MSFS07_MODES, FanStatus
 
 results: list[tuple[str, bool, str]] = []
 
 
 def summary(s: FanStatus) -> str:
-    return (f"power={s.power} speed={s.speed} mode={s.mode}({s.mode_name}) "
-            f"h={s.horizontal_angle} v={s.vertical_angle} display={s.display} buzzer={s.buzzer}")
+    return (
+        f"power={s.power} speed={s.speed} mode={s.mode}({s.mode_name}) "
+        f"h={s.horizontal_angle} v={s.vertical_angle} display={s.display} buzzer={s.buzzer}"
+    )
 
 
 async def check(client, label, fields, expect, pause=1.5):
@@ -49,7 +51,9 @@ async def main():
         await c.connect()
         return c
 
-    client = MideaFanClient(build_advertis_data(args.address, args.serial), connector, idle_timeout=120)
+    client = MideaFanClient(
+        build_advertis_data(args.address, args.serial), connector, idle_timeout=120
+    )
     orig = await client.query()
     print("original:", summary(orig))
     try:
@@ -58,16 +62,25 @@ async def main():
             await check(client, f"horizontal {a}", {"horizontal_angle": a}, {"horizontal_angle": a})
         for a in (30, 60, 135):
             await check(client, f"vertical {a}", {"vertical_angle": a}, {"vertical_angle": a})
-        await check(client, "vertical off", {"vertical_angle": 0}, {"vertical_angle": 0, "horizontal_angle": 120})
+        await check(
+            client,
+            "vertical off",
+            {"vertical_angle": 0},
+            {"vertical_angle": 0, "horizontal_angle": 120},
+        )
         await check(client, "horizontal off", {"horizontal_angle": 0}, {"horizontal_angle": 0})
         await check(client, "display off", {"display": False}, {"display": False})
         await check(client, "display on", {"display": True}, {"display": True})
-        await check(client, f"speed {args.max_speed}", {"speed": args.max_speed}, {"speed": args.max_speed})
+        await check(
+            client, f"speed {args.max_speed}", {"speed": args.max_speed}, {"speed": args.max_speed}
+        )
         s = await client.set(speed=args.max_speed + 1)
         print(f"[INFO] speed {args.max_speed + 1} request -> fan reports speed {s.speed}")
         await check(client, "speed 1", {"speed": 1}, {"speed": 1})
         for m in [int(x) for x in args.modes.split(",")]:
-            await check(client, f"mode {m} ({MSFS07_MODES[m]})", {"mode": m}, {"mode": m}, pause=2.5)
+            await check(
+                client, f"mode {m} ({MSFS07_MODES[m]})", {"mode": m}, {"mode": m}, pause=2.5
+            )
         await check(client, "power off", {"power": False}, {"power": False})
         await check(client, "power on", {"power": True}, {"power": True})
     finally:

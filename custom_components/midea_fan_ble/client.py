@@ -36,7 +36,9 @@ DEFAULT_IDLE_TIMEOUT = 20.0
 class _Session:
     """One connected, authenticated BLE session."""
 
-    def __init__(self, client: BleakClient, advertis_data: bytes, on_push: Callable[[bytes], None]) -> None:
+    def __init__(
+        self, client: BleakClient, advertis_data: bytes, on_push: Callable[[bytes], None]
+    ) -> None:
         self.client = client
         self._state = HandshakeState(advertis_data, os.urandom(6))
         self._buffer = ConnFrameBuffer()
@@ -48,7 +50,7 @@ class _Session:
         for raw in self._buffer.feed(bytes(data)):
             try:
                 info = self._state.on_receive(raw)
-            except BaseException as err:  # noqa: BLE001 - surfaced to the waiter
+            except BaseException as err:
                 self._queue.put_nowait(err)
                 continue
             if info.kind == "biz" and not self._awaiting_biz and info.biz_body:
@@ -56,7 +58,9 @@ class _Session:
             else:
                 self._queue.put_nowait(info)
 
-    async def _exchange(self, frame: Callable[[], bytes] | bytes, kind: str, attempts: int, timeout: float) -> ReceiveInfo:
+    async def _exchange(
+        self, frame: Callable[[], bytes] | bytes, kind: str, attempts: int, timeout: float
+    ) -> ReceiveInfo:
         for _ in range(attempts):
             data = frame() if callable(frame) else frame
             await self.client.write_gatt_char(MIDEA_WRITE_CHAR_UUID, data, response=True)
@@ -67,7 +71,9 @@ class _Session:
                         if isinstance(item, BaseException):
                             raise item
                         if item.kind == "security_error":
-                            raise MideaBleAuthenticationError(f"device security error: {item.body.hex()}")
+                            raise MideaBleAuthenticationError(
+                                f"device security error: {item.body.hex()}"
+                            )
                         if item.kind == kind:
                             return item
             except TimeoutError:
@@ -89,7 +95,9 @@ class _Session:
         if c3.result != 1:
             raise MideaBleAuthenticationError(f"C3 result was {c3.result}")
 
-    async def request(self, appliance_frame: bytes, attempts: int = 3, timeout: float = 3.0) -> bytes:
+    async def request(
+        self, appliance_frame: bytes, attempts: int = 3, timeout: float = 3.0
+    ) -> bytes:
         while not self._queue.empty():
             self._queue.get_nowait()
         self._awaiting_biz = True

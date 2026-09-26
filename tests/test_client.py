@@ -12,7 +12,7 @@ from custom_components.midea_fan_ble.protocol.crypto import (
     derive_root_key,
     derive_session_key,
 )
-from custom_components.midea_fan_ble.protocol.fa import build_frame, build_query, parse_status
+from custom_components.midea_fan_ble.protocol.fa import build_frame
 from custom_components.midea_fan_ble.protocol.frames import (
     CONN_T2,
     CONN_T3,
