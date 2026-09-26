@@ -1,0 +1,91 @@
+{
+  "config": {
+    "flow_title": "{name}",
+    "step": {
+      "user": {
+        "description": "Choose the Midea fan to set up. Close the SmartHome app first; the fan accepts one Bluetooth connection at a time.",
+        "data": {
+          "address": "Device"
+        }
+      },
+      "bluetooth_confirm": {
+        "description": "Set up the Midea fan at {address}? Close the SmartHome app first; the fan accepts one Bluetooth connection at a time."
+      },
+      "manual_serial": {
+        "title": "Enter the fan's serial",
+        "description": "The advertisement carrying the serial of {address} was not received. Run `tools/fanctl.py scan` from this project to read it and enter the 14-character value (for example 12345678FA0001).",
+        "data": {
+          "serial": "Serial"
+        }
+      },
+      "test": {
+        "description": "Could not authenticate with the fan. Close the SmartHome app, move the Bluetooth adapter closer, then submit to retry."
+      }
+    },
+    "error": {
+      "cannot_connect": "Could not connect and authenticate.",
+      "invalid_serial": "Expected 14 letters and digits, with the appliance type at characters 9-10.",
+      "unknown": "Unexpected error"
+    },
+    "abort": {
+      "already_configured": "Device is already configured",
+      "no_devices_found": "No Midea Bluetooth fans found",
+      "not_supported": "This Midea device is not a fan."
+    },
+    "progress": {
+      "wait_serial": "Waiting for the fan at {address} to broadcast its serial. This can take up to two minutes."
+    }
+  },
+  "entity": {
+    "fan": {
+      "fan": {
+        "state_attributes": {
+          "preset_mode": {
+            "state": {
+              "normal": "Normal",
+              "natural": "Natural",
+              "sleep": "Sleep",
+              "auto": "Auto"
+            }
+          }
+        }
+      }
+    },
+    "select": {
+      "horizontal_oscillation": {
+        "name": "Horizontal oscillation",
+        "state": {
+          "off": "Off",
+          "30": "30°",
+          "60": "60°",
+          "120": "120°"
+        }
+      },
+      "vertical_oscillation": {
+        "name": "Vertical oscillation",
+        "state": {
+          "off": "Off",
+          "30": "30°",
+          "60": "60°",
+          "135": "135°"
+        }
+      }
+    },
+    "switch": {
+      "display": {
+        "name": "Display"
+      },
+      "buzzer": {
+        "name": "Buzzer"
+      }
+    }
+  },
+  "exceptions": {
+    "device_not_found": {
+      "message": "Bluetooth device {address} not found"
+    },
+    "command_failed": {
+      "message": "Fan command failed: {error}"
+    }
+  }
+}
