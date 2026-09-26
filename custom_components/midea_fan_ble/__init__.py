@@ -1,0 +1,1 @@
+"""Midea fan BLE integration."""
