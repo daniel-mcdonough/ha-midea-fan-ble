@@ -1,4 +1,6 @@
-"""Protocol tests using frames captured from a real MSFS07RW6GB."""
+"""Protocol tests. Status and set frames were captured from a real MSFS07RW6GB;
+the advertisement and handshake fixtures use a placeholder serial and address.
+"""
 
 import pytest
 
