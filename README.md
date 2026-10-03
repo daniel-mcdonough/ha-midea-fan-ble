@@ -44,7 +44,8 @@ Turning `oscillate` on enables horizontal oscillation at the last-used angle
 ### HACS
 
 1. In HACS, open the menu and choose **Custom repositories**.
-2. Add this repository's URL with category **Integration**.
+2. Add `https://github.com/daniel-mcdonough/ha-midea-fan-ble` with category
+   **Integration**.
 3. Search for **Midea Fan (Bluetooth)** and download it.
 4. Restart Home Assistant.
 
