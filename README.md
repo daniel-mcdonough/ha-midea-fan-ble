@@ -156,4 +156,5 @@ runs the device side of the handshake.
 
 ## License
 
-MIT. See [LICENSE](LICENSE).
+MIT. See [LICENSE](LICENSE). Parts of the protocol code are adapted from
+midea-ble and midea-local; see [NOTICE](NOTICE).

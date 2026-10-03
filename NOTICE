@@ -1,0 +1,11 @@
+This project includes code adapted from the following projects, both released
+under the MIT License. Their copyright notices are reproduced below, and the
+full license text is in LICENSE.
+
+midea-ble
+  Used in custom_components/midea_fan_ble/protocol/{crypto,frames,handshake,exceptions}.py
+  Copyright (c) 2026 midea-ble-go contributors
+
+midea-local
+  Used in custom_components/midea_fan_ble/protocol/fa.py (fan field layout)
+  Copyright (c) 2021 George Zhao
