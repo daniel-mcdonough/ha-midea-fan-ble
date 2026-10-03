@@ -1,57 +1,137 @@
-# Midea Fan (Bluetooth) for Home Assistant
+# Midea Fan (Bluetooth)
 
-Local Bluetooth control of the Midea **MSFS07RW6GB** Smart Stand Air Circulator.
-It needs no Midea account, no cloud token, and no Wi-Fi: the fan never has to
-be set up in the SmartHome app.
+[![HACS Custom](https://img.shields.io/badge/HACS-Custom-41BDF5.svg)](https://hacs.xyz/docs/faq/custom_repositories)
+
+Home Assistant integration for Midea fans over Bluetooth Low Energy. Control is
+fully local: no Midea account, no cloud token, no Wi-Fi. The fan doesn't need
+to be set up in the SmartHome app.
+
+## Supported devices
+
+| Model | Name | Status |
+|---|---|---|
+| MSFS07RW6GB | Smart Stand Air Circulator | Tested |
 
 Other Midea fans (appliance type `0xFA`) that advertise under Bluetooth company
-ID `0x06A8` may work, but only this model has been tested. Mode numbers in
-particular differ between models.
+ID `0x06A8` may work, but haven't been tested. Mode numbers in particular
+differ between models, so presets may be wrong on other fans.
 
-## What you get
+## Entities
 
-| Entity | Controls |
-|---|---|
-| `fan` | on/off, 12 speeds, presets Normal / Natural / Sleep / Auto, oscillate |
-| `select` Horizontal oscillation | off, 30°, 60°, 120° |
-| `select` Vertical oscillation | off, 30°, 60°, 135° |
-| `switch` Display, Buzzer | panel display and command beeps |
-| `sensor` Temperature | room temperature measured by the fan |
+| Platform | Entity | Description |
+|---|---|---|
+| `fan` | Fan | On/off, 12 speeds, presets Normal / Natural / Sleep / Auto, oscillate |
+| `select` | Horizontal oscillation | Off, 30°, 60°, 120° |
+| `select` | Vertical oscillation | Off, 30°, 60°, 135° |
+| `switch` | Display | Panel display on/off |
+| `switch` | Buzzer | Beep on commands |
+| `sensor` | Temperature | Room temperature measured by the fan |
 
-`fan.oscillate` turns on horizontal oscillation at the last-used angle
-(120° by default) and turns off both axes.
+Turning `oscillate` on enables horizontal oscillation at the last-used angle
+(120° by default). Turning it off disables both axes.
 
-## Install
+## Requirements
 
-With HACS: add this repository as a custom repository (category
-Integration), install **Midea Fan (Bluetooth)**, and restart Home Assistant.
+- Home Assistant 2026.8.0 or newer
+- The [Bluetooth](https://www.home-assistant.io/integrations/bluetooth/)
+  integration, using either a local adapter or an
+  [ESPHome Bluetooth proxy](https://esphome.io/components/bluetooth_proxy.html)
+  with active connections enabled
+- The adapter or proxy has to be in range of the fan
 
-Manually: copy `custom_components/midea_fan_ble` into your Home Assistant
-`config/custom_components/` directory and restart.
+## Installation
 
-Then:
+### HACS
 
-1. The fan is discovered automatically (Settings → Devices & services). You
-   can also add it manually with **Add integration → Midea Fan (Bluetooth)**.
-2. Close the SmartHome app first. The fan accepts one Bluetooth connection at a
-   time.
+1. In HACS, open the menu and choose **Custom repositories**.
+2. Add this repository's URL with category **Integration**.
+3. Search for **Midea Fan (Bluetooth)** and download it.
+4. Restart Home Assistant.
 
-The Home Assistant host (or an ESPHome Bluetooth proxy with active connections)
-must be within Bluetooth range of the fan.
+### Manual
 
-Setup waits up to two minutes for the advertisement that carries the fan's
-serial. If it never arrives, you are asked to type the serial in; get it with
-`tools/fanctl.py scan`.
+1. Copy `custom_components/midea_fan_ble` into your Home Assistant
+   `config/custom_components/` directory.
+2. Restart Home Assistant.
+
+## Configuration
+
+Configuration is done in the UI.
+
+1. Close the SmartHome app on any phone near the fan. The fan only accepts one
+   Bluetooth connection at a time.
+2. The fan should show up as discovered under **Settings → Devices &
+   services**. If it doesn't, click **Add integration** and search for
+   **Midea Fan (Bluetooth)**.
+3. Confirm the device.
+
+Setup needs the fan's serial number, which the fan broadcasts in only one of the
+two advertisements it alternates between. Setup waits up to two minutes for it.
+If it doesn't arrive, you are asked to enter the serial manually. You can read
+it with `tools/fanctl.py scan` (see [Command-line tools](#command-line-tools)).
+
+## How it works
+
+- State is polled every 60 seconds. Every command returns a full status, so
+  changes made from Home Assistant show up right away.
+- The Bluetooth connection is closed after 15 seconds of inactivity, so the
+  phone app can still connect between polls.
+- The protocol is the same encrypted BLE transport Midea uses for its Bluetooth
+  air conditioners, carrying the standard Midea appliance frames. See
+  [docs/PROTOCOL.md](docs/PROTOCOL.md) for the details.
 
 ## Security
 
-The handshake key is derived only from data the fan broadcasts publicly (its
-serial prefix and Bluetooth address). **Anyone within Bluetooth range running
-this code can control the fan.** That is how Midea designed the protocol and
-this integration cannot change it. Keep that in mind if the fan is somewhere
-that matters.
+The encryption key is derived only from data the fan broadcasts publicly (its
+serial prefix and Bluetooth address). **Anyone in Bluetooth range running this
+code can control the fan.** That's how Midea designed the protocol, and this
+integration can't change it.
+
+## Known limitations
+
+- Only the MSFS07RW6GB has been tested.
+- Auto preset: the fan picks its own speed and enables both oscillation axes.
+  It hasn't been confirmed that this matches "Auto" on the fan's panel.
+- Child lock is not supported. The command had no effect on the tested fan.
+- Changes made with the fan's remote or panel show up at the next poll, up to
+  60 seconds later.
+
+## Troubleshooting
+
+**The fan isn't discovered, or the connection fails.**
+The SmartHome app is most likely holding the connection. Close it. Otherwise,
+check that your adapter or proxy is in range and that proxies have active
+connections enabled.
+
+**Setup times out waiting for the serial.**
+Enter it manually. Run `tools/fanctl.py scan` and copy the 14-character serial.
+
+### Debug logging
+
+Add this to `configuration.yaml` and restart:
+
+```yaml
+logger:
+  default: warning
+  logs:
+    custom_components.midea_fan_ble: debug
+```
+
+Or enable debug logging from the integration's page under **Devices &
+services**.
+
+## Removal
+
+1. Go to **Settings → Devices & services**, select **Midea Fan (Bluetooth)**,
+   and delete the entry.
+2. If you installed it with HACS, remove it there. If you installed it
+   manually, delete `config/custom_components/midea_fan_ble`.
+3. Restart Home Assistant.
 
 ## Command-line tools
+
+The `tools/` directory has standalone scripts for testing the fan without Home
+Assistant.
 
 ```sh
 python -m venv .venv && .venv/bin/pip install bleak cryptography
@@ -62,7 +142,7 @@ python -m venv .venv && .venv/bin/pip install bleak cryptography
 .venv/bin/python tools/live_test.py --address ... --serial ...   # exercises everything, then restores
 ```
 
-## Tests
+## Development
 
 ```sh
 .venv/bin/pip install pytest pytest-asyncio ruff
@@ -70,9 +150,9 @@ python -m venv .venv && .venv/bin/pip install bleak cryptography
 .venv/bin/ruff check custom_components tests tools
 ```
 
-The unit tests use frames captured from a real fan and a simulated fan that
+The unit tests use frames captured from a real fan, plus a simulated fan that
 runs the device side of the handshake.
 
-## How it works
+## License
 
-See [docs/PROTOCOL.md](docs/PROTOCOL.md).
+MIT. See [LICENSE](LICENSE).
